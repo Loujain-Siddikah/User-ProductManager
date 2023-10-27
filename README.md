@@ -8,7 +8,7 @@
 1. User Registration and Authentication:
  - Authentication is done by laravel sanctum
  - Users can register using their email or phone number.
- - Email verification: After registration, users will receive a 4-digits verification code in the case of email registration.
+ - Email verification using mailtrap server: After registration, users will receive a 4-digits verification code in the case of email registration.
  - Users can change their password and reset teir password with email verification.
 2. User Roles:
  - Two roles: User and Admin.

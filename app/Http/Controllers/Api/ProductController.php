@@ -2,107 +2,90 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
 use App\Models\Product;
-use App\Traits\ImageTrait;
-use App\Traits\ApiResponses;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Traits\JsonResponseTrait;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\File;
+use App\Http\Resources\UserResource;
 use App\Http\Requests\ProductRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
+use App\Http\Resources\ProductResource;
+use App\Http\Resources\ProductCollection;
+use App\Contract\ProductRepositoryInterface;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class ProductController extends Controller
 {
-    use ImageTrait;
-    use ApiResponses;
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $products= Product::paginate(20);
-        return $this->success($products,'the products get succesfully');
-    }
-    
-    public function user_products(){
-        $user=Auth::user();
-        $products=Product::where('user_id',$user->id)->paginate(20);
-        return $this->success($products,'');
-    }
+    use JsonResponseTrait;
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(ProductRequest $request)
-    {
-        try {
-            $request->validated($request->all());
-            //saveImage method return the name of image
-            $productImage_name=$this->saveImage($request->image,'images/products/');
-            // Create a new product associated with the authenticated user
-            $product = Product::create([
-                'name'=> $request->name,
-                'description'=>$request->description,
-                //we will store the path of image in database
-                'image'=>'/images/products'.$productImage_name,
-                'user_id'=> auth()->user()->id
-            ]);
-            return $this->success($product,'the product added succesfully', 201);
-        }catch (ValidationException $e) {
-            // Handle validation errors
-            return response()->json(['errors' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            // Handle other exceptions
-            return $this->error('','An error occurred while creating the product', 500);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function __construct(private ProductRepositoryInterface $productRepository)
     {
         
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ProductRequest $request, string $id)
+    public function index()
     {
         try{
-            $request->validate($request->rules(),$request->all());
-            $product=Product::findOrFail($id);
-            $OldProductImage= $product->image;
-            if(File::exists($OldProductImage)){
-                File::delete($OldProductImage);
-            }
-            $productImage_name=$this->saveImage($request->image,'images/products/');    
-            // }
-            $product->name = $request->name;
-            $product->description= $request->description;
-            $product->image= '/images/products'.$productImage_name;
-            $product->save();
-            return $this->success('','Product updated successfully');
+        $products= $this->productRepository->getAllProducts();
+         return $this->jsonSuccessResponse('the products get succesfully', new ProductCollection($products));
         }catch (\Exception $e) {
-        // Handle any exceptions that may occur during the update
-            return $this->error('','An error occurred while updating the product', 500);
+            throw new \Exception ('get products failed');
+        }
+    }
+    
+    public function user_products(){
+        try{
+        $products= $this->productRepository->getUserproducts();
+        return $this->jsonSuccessResponse('my products get succesfully',  new ProductCollection($products));
+        }catch (\Exception $e) {
+            throw new \Exception ('get user products failed');
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function other_user_products(User $user){
+        try{
+        $products= $this->productRepository->otherUserProducts($user);
+        if ($products->isEmpty()) {
+            return $this->jsonSuccessResponse('user doesnt have a products', [UserResource::make($user)]);
+        }
+        return $this->jsonSuccessResponse('user products get succesfully', new ProductCollection($products));
+        }catch (\Exception $e) {
+            // Handle other exceptions
+            throw new \Exception ('get other user products failed');
+        }
+    }
+
+    public function store(ProductRequest $request)
+    {
+        try {
+           $product = $this->productRepository->storeProduct($request->validated());
+            return $this->jsonSuccessResponse('the product added succesfully',ProductResource::make($product), 201);
+        }catch (\Exception $e) {
+            // Handle other exceptions
+            throw new \Exception ('An error occurred while creating the product');
+        }
+    }
+
+
+    public function update(ProductRequest $request, Product $product)
     {
         try{
-            $product=Product::findOrFail($id);
-            $product->delete();
-            return $this->success('','Product deleted successfully');
+            $product = $this->productRepository->updateProduct($request->all(), $product);
+            return $this->jsonSuccessResponse('Product updated successfully',ProductResource::make($product));
+        }catch(AuthorizationException $ex){
+            throw new AuthorizationException($ex->getMessage());
         }catch (\Exception $e) {
-            return $this->error('','An error occurred while deleting the product', 500);
+            throw new \Exception ('An error occurred while updating the product');
+        }
+    }
+
+    public function destroy(Product $product)
+    {
+        try{
+            $product = $this->productRepository->destroyProduct($product);
+            return $this->jsonSuccessResponse('Product deleted successfully', ProductResource::make($product));
+        }catch(AuthorizationException $ex){
+            throw new AuthorizationException($ex->getMessage());
+        }catch (\Exception $e) {
+            return $this->jsonErrorResponse('An error occurred while deleting the product', 500);
         }
        
     }

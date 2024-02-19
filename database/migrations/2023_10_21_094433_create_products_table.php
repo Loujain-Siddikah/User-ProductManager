@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->string('image');
+            $table->integer('price');
             $table->unsignedBigInteger('user_id'); // Foreign key column
             // Define the foreign key relationship
             $table->foreign('user_id')->references('id')->on('users');

@@ -25,6 +25,7 @@ class ProductRequest extends FormRequest
             'name' => ['required', 'string'],
             'description' => ['required', 'string'],
             'image' => ['required','image','mimes:jpg,jpeg,png','max:2048'],// Maximum size of 2MB
+            'price' => ['required', 'numeric']
         ];
     }
 }

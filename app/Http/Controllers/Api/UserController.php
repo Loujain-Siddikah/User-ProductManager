@@ -2,46 +2,40 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
-use App\Traits\ApiResponses;
-use Illuminate\Http\Request;
+use App\Traits\JsonResponseTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\StoreUserRequest;
-use Illuminate\Support\Facades\Password;
+use App\Http\Requests\UpdateUserRequest;
+use App\Contract\UserRepositoryInterface;
 
 class UserController extends Controller
 {
-    use ApiResponses;
-    public function user_info(){
-        $user= Auth::user();
-        return response()->json($user);
+    use JsonResponseTrait;
+    public function __construct(private UserRepositoryInterface $userRepository)
+    {
+        
     }
 
-    public function update(Request $request){
+    public function user_info(){
+        try{
+            $user= Auth::user();
+            $userInfo = $this->userRepository->getUser($user);
+            return $this->jsonSuccessResponse('user info get succesfully',UserResource::make($userInfo)); 
+        }catch (\Exception $e) {
+            throw new \Exception ('get user information failed');
+        } 
+    }
 
-        $request->validate([
-            'first_name' => 'string|max:255',
-            'last_name' => 'string|max:255',
-            'email' => 'email|unique:users',
-            'phone' => 'unique:users|regex:/^[0-9]{10}$/',
-           
-        ]);
-        $user= User::where('id',Auth::user()->id)->first();
-        $user->first_name= $request->first_name;
-        $user->last_name= $request->last_name;
-        $user->email= $request->email;
-        $user->phone= $request->phone;
-        $user->save();
-        return $this->success($user,'user information updated');
+    public function update(UpdateUserRequest $request){
+        try{
+            $user = $this->userRepository->updateUser($request->all());
+            return $this->jsonSuccessResponse('user information updated succesfully',UserResource::make($user));
+        }catch (\Exception $e) {
+            throw new \Exception ('update user infoemation failed');
+        } 
     } 
 }
 
 
 
-// forget password -> email (link) -> new password , verify ->Run(changePassword without oldPassword)
-// in run check if generated date and time smaller than 2 hours then run else ask to regenrate token
-// *link = xxcxvxcvxc.com/changepassword&token=token
-// *token = usertoken
-// *token must have generated date and time 

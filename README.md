@@ -10,5 +10,6 @@
 - Response data is transformed and returned using Eloquent resources.
 - Authentication is done by laravel sanctum (verification code afterregister, reset password with email verification).
 - Implemented two user roles (admin, user) using spatie laravel package.
-- User Features: updating his profile, managing his products (create,update, delete), view other users products, products will be displayedwith pagination.Admins can manage users             (delete, add users with a specific role).
+- User Features: updating his profile, managing his products (create,update, delete), view other users products, products will be displayedwith pagination.
+- Admins can manage users(delete, add users with a specific role).
     

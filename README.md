@@ -12,4 +12,9 @@
 - Implemented two user roles (admin, user) using spatie laravel package.
 - User Features: updating his profile, managing his products (create,update, delete), view other users products, products will be displayedwith pagination.
 - Admins can manage users(delete, add users with a specific role).
-    
+
+## Api documentations
+- [Admin documentation](https://documenter.getpostman.com/view/23277839/2s9YRFVAJM)
+- [Authentication documentation](https://documenter.getpostman.com/view/23277839/2s9YRFWASY)
+- [Products documentaion](https://documenter.getpostman.com/view/23277839/2s9YRGw8mc)
+- [User documentation](https://documenter.getpostman.com/view/23277839/2s9YRGw8mX)

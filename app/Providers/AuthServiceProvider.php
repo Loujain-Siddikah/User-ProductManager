@@ -2,7 +2,12 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use App\Enums\RolesEnum;
+use App\Models\User;
+use App\Models\Product;
+use App\Policies\UserPolicy;
+use App\Policies\ProductPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -13,7 +18,8 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        Product::class => ProductPolicy::class,
+        User::class => UserPolicy::class,
     ];
 
     /**
@@ -21,6 +27,9 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->registerPolicies();
+        // Gate::before(function ($user, $ability) {
+        //     return $user->hasRole(RolesEnum::ADMIN->value) ? true : null;
+        // });
     }
 }

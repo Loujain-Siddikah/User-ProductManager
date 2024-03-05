@@ -3,15 +3,15 @@ namespace App\Repositories;
 
 use App\Models\User;
 use App\Models\Product;
-use App\Traits\ImageTrait;
+use App\Helpers\ImageHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use App\Contract\ProductRepositoryInterface;
+use App\Interfaces\ProductRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Auth\Access\AuthorizationException;
 
-class ProductRepository implements ProductRepositoryInterface
+ class ProductRepository implements ProductRepositoryInterface
 {
-    use ImageTrait;
     protected $model;
 
     public function __construct(Product $product)
@@ -19,14 +19,24 @@ class ProductRepository implements ProductRepositoryInterface
         $this->model = $product;
     }
 
-    public function getAllProducts()
+    /**
+     * Get all products.
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getAllProducts():LengthAwarePaginator
     {
         $products= $this->model->paginate(5);
         $products->load('user');
         return $products;
     }
 
-    public function getUserproducts()
+    /**
+     * Get auth user products.
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getUserproducts():LengthAwarePaginator
     {
         $user = Auth::user();
         $products = $this->model->where('user_id',$user->id)->paginate(5);
@@ -34,56 +44,76 @@ class ProductRepository implements ProductRepositoryInterface
         return $products;
     }
 
-    public function otherUserProducts(User $user)
+    /**
+     * Get other users products.
+     *
+     * @return LengthAwarePaginator
+     */
+    public function otherUserProducts(User $user): LengthAwarePaginator
     {
         $products = $user->products()->paginate(5);
         $products->load('user');
         return $products;
     }
- 
-    public function storeProduct(array $data)
+
+    protected function saveImage($imageField, string $fileName): bool|string
+    {
+        if (!$imageField) {
+            return null;
+        }
+
+        return ImageHelper::saveImage($imageField, $fileName);
+    }
+
+     /**
+     * Create a new product.
+     *
+     * @param array $data
+     * @param User $user
+     * @return Product
+     */
+    public function CreateProduct(array $data, User $user): Product
     {       
-        //saveImage method return the name of image
-        $productImage_name=$this->saveImage($data['image'],'images/products/');
-        $productData=[
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'user_id' => Auth::user()->id,
-            'price' => $data['price'],
-            //we will store the path of image in database
-            'image'=>'/images/products'.$productImage_name,
-        ];
-        $product = $this->model->create($productData);
+        $data['image'] = $this->saveImage($data['image'], 'products_images');
+        $data['user_id'] = $user->id;
+        $product =  $this->model->create($data);
         // Eager load the user relationship
         $product->load('user');
         return $product;
     }
 
-    public function updateProduct(array $data, Product $product)
+    /**
+     * Update a product with the given data.
+     *
+     * 
+     * 
+     * @return Product
+     */
+    public function updateProduct(array $data, int $id): Product
     {
-         // Check if the authenticated user owns the product
-        if ($product->user_id !== Auth::user()->id) {
-            throw new AuthorizationException('You are not authorized to update this product');
-        }
+        $product = Product::findOrFail($id);
         $OldProductImage= $product->image;
         if(File::exists($OldProductImage)){
             File::delete($OldProductImage);
         }
-        $productImageName=$this->saveImage($data['image'],'images/products/');    
-        $product->name = $data['name'];
-        $product->description= $data['description'];
-        $product->image= '/images/products'.$productImageName;
-        $product->save();
+        if(isset($data['image']))
+        {
+            $data['image'] = $this->saveImage($data['image'], 'products_images');
+        }
+        $product->update($data);
         $product->load('user');
+
         return $product;
     }
 
-    public function destroyProduct(Product $product)
+     /**
+     * Delete a product.
+     *
+     * @param Product $product
+     * @return void
+     */
+    public function destroyProduct(Product $product):void
     {
-        if ($product->user_id !== Auth::user()->id){
-            throw new AuthorizationException('You are not authorized to delete this product');
-        }
         $product->delete();
-        return $product;
     }
 }

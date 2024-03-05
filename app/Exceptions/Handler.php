@@ -4,14 +4,15 @@ namespace App\Exceptions;
 
 use Throwable;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Traits\JsonResponseTrait;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
 use App\Exceptions\CustomModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -45,12 +46,39 @@ class Handler extends ExceptionHandler
         if ($e instanceof ModelNotFoundException) {
             return $this->jsonErrorResponse(" {$this->prettyModelNotFound($e)} not found.",404);
         }
+        
+        if ($e instanceof PermissionDoesNotExist) {
+            return $this->jsonErrorResponse(
+                'You do not have permission to perform this action.',
+                JsonResponse::HTTP_FORBIDDEN
+            );
+        }
+
         if ($e instanceof AuthorizationException) {
-            return  $this->jsonErrorResponse( $e->getMessage(),JsonResponse::HTTP_FORBIDDEN);
+            return  $this->jsonErrorResponse( 
+                "You are not authorized to perform this action.",
+                JsonResponse::HTTP_FORBIDDEN
+            );
         }
-        if ($e instanceof \Exception) {
-            return  $this->jsonErrorResponse( $e->getMessage(),500);
+        
+        if ($e instanceof InvalidVerificationCodeException) {
+            return  $this->jsonErrorResponse( 
+                'Invalid verification code provided.',
+                JsonResponse::HTTP_FORBIDDEN
+            );
         }
+
+        if ($e instanceof ValidationException) {
+            return  $this->jsonErrorResponse( 
+                $e->errors(),
+                422            
+            );
+        }
+        // if ($e instanceof \Exception) {
+        //     return  $this->jsonErrorResponse(
+        //         'server error',
+        //         500);
+        // }
         return parent::render($request, $e);
     }
 

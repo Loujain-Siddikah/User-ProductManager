@@ -6,9 +6,9 @@ use App\Repositories\AuthRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\ProductRepository;
 use Illuminate\Support\ServiceProvider;
-use App\Contract\AuthRepositoryInterface;
-use App\Contract\UserRepositoryInterface;
-use App\Contract\ProductRepositoryInterface;
+use App\Interfaces\AuthRepositoryInterface;
+use App\Interfaces\UserRepositoryInterface;
+use App\Interfaces\ProductRepositoryInterface;
 
 class RepositoryServiceProvider extends ServiceProvider
 {

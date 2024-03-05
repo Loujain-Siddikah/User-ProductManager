@@ -2,37 +2,39 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ResetPasswordRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use App\Traits\JsonResponseTrait;
+use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\ResetLinkEmailRequest;
+
 class NewPasswordController extends Controller
 {
-    use JsonResponseTrait;
-
-    public function sendResetLinkEmail(Request $request){
-        try{
-            $request->validate(['email' => 'required|email']);
+    public function sendResetLinkEmail(ResetLinkEmailRequest $request)
+    {
             //we use built in password broker via password facade to send password reset link to user 
             // status slug وهي الميثود تعيد 
-            $status = Password::sendResetLink($request->only('email'));
-            // التحقق ما اذا تم ارسال رابط اعادة تعيين الباسوورد بنجاح ام لا
+            $status = Password::sendResetLink($request->validated());
+            //  التحقق ما اذا تم ارسال رابط اعادة تعيين الباسوورد بنجاح ام لا
             //RESET_LINK_SENT وهو ثابت معرف في لارافيل يمثل استجابة ناجحة عند ارسال رابط للبريد الالكتروني بنجاح اي يشير الى ان التطبيق قد انشأ وارسل بريد الكتروني لليوزر
             //reset link statusويرسل بريد لليوزر و بعد ارسال البريد يستجيب التطبيق بال  uniqe reset token  عندما يطلب اليوزر اعادة تعيين الباسوورد يقوم التطبيق بانشاء    
             return $status === Password::RESET_LINK_SENT
-                                        ? $this->jsonSuccessResponse('Reset link sent to your email',[],201)
-                                        : $this->jsonErrorResponse('Unable to send reset link', 400);
+                                        ? $this->jsonSuccessResponse(
+                                            'Reset link sent to your email'
+                                            ,[]                                           
+                                            ,201
+                                            )
+                                        : $this->jsonErrorResponse(
+                                            'Unable to send reset link',
+                                             400
+                                            );
                     //password_reset_tokens وحيتم وضع التوكين يلي عم ينبعت عالايميل بالداتابيز في جدول 
-        }catch (\Exception $e) {
-            throw new \Exception ('login failed');
-        } 
+  
     }
 
     public function resetPassword(ResetPasswordRequest $request)
     {
-        try{
+        // try{
             //استخدمنا نفس الفاساد السابق لكن بتابع اخر يقوم هذا التابع بعمل فاليديت للايميل والباسوورد والتوكين ما اذا كانو صالحين واذا كانو صالحين سيتم استدعاء تابع يقوم بتحديث باسوورد اليوزر بباسورد جديدة
             $response = Password::reset(
                 $request->only('email', 'password','token'),
@@ -52,15 +54,23 @@ class NewPasswordController extends Controller
                     });
                 });
             if ($response === Password::PASSWORD_RESET) {
-                return $this->jsonSuccessResponse('Password reset successfully, please login with your new password');
+                return $this->jsonSuccessResponse(
+                    'Password reset successfully, please login with your new password'
+                );
             } elseif ($response === Password::INVALID_USER) {
-                return $this->jsonErrorResponse('Invalid user', 400);
+                return $this->jsonErrorResponse('
+                Invalid user', 
+                400
+            );
             } else {
-                return $this->jsonErrorResponse('Invalid reset token', 400);
+                return $this->jsonErrorResponse(
+                    'Invalid reset token', 
+                    400
+                );
             }
-        }catch (\Exception $e) {
-            throw new \Exception ('Reset Password failed');
-        }         
+        // }catch (\Exception $e) {
+        //     throw new \Exception ('Reset Password failed');
+        // }         
     }  
 }
 

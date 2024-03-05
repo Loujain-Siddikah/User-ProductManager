@@ -54,12 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function products(){
         return $this->hasMany(Product::class);
     }
-    public function markEmailAsVerified(){
-        $this->verification_code= null;
-        $this->email_verified = 1;
-        $this->email_verified_at = now();
-        $this->save();
-    }
+    
     public function sendPasswordResetNotification($token){
         $url = url(route('password.reset', ['token' => $token], false));
         $this->notify(new ResetPasswordNotification($url));

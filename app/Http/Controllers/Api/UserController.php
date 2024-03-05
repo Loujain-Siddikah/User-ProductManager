@@ -2,39 +2,38 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Traits\JsonResponseTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\UpdateUserRequest;
-use App\Contract\UserRepositoryInterface;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\PermissionResource;
 
 class UserController extends Controller
 {
-    use JsonResponseTrait;
-    public function __construct(private UserRepositoryInterface $userRepository)
+    public function __construct(private UserRepository $userRepository)
     {
         
     }
 
-    public function user_info(){
-        try{
-            $user= Auth::user();
-            $userInfo = $this->userRepository->getUser($user);
-            return $this->jsonSuccessResponse('user info get succesfully',UserResource::make($userInfo)); 
-        }catch (\Exception $e) {
-            throw new \Exception ('get user information failed');
-        } 
+    public function user_profile(){
+        $user= Auth::user();
+        $userInfo = $this->userRepository->getUser($user);
+        return $this->jsonSuccessResponse(
+            'user info get succesfully',
+            UserResource::make($userInfo)
+        ); 
     }
 
     public function update(UpdateUserRequest $request){
-        try{
-            $user = $this->userRepository->updateUser($request->all());
-            return $this->jsonSuccessResponse('user information updated succesfully',UserResource::make($user));
-        }catch (\Exception $e) {
-            throw new \Exception ('update user infoemation failed');
-        } 
-    } 
+        $user = $this->userRepository->updateUser($request->validated());
+        return $this->jsonSuccessResponse(
+            'user information updated succesfully',
+            UserResource::make($user)
+        );
+
+    }
+    
 }
 
 

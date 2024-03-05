@@ -2,55 +2,76 @@
 
 namespace App\Repositories;
 
+use App\Enums\RolesEnum;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Contract\UserRepositoryInterface;
+use App\Interfaces\UserRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository implements UserRepositoryInterface 
 {
-    public function adminCreateUser(array $data)
-    {
-        $userData = [
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'password' => Hash::make($data['password']),               
-        ];
 
-        if (isset($data['email'])) {
-            $userData['email'] = $data['email'];
-        } elseif (isset($data['phone'])) {
-            $userData['phone'] = $data['phone'];
-        }
-        $user = User::create($userData);
-        $user->assignRole($data['role']);
-
-        return $user;
-    }
-
-    public function getAllUsers() 
+    /**
+     * get all users that verified their email.
+     *
+     * @return Collection
+     */
+    public function getAllUsers():Collection
     {
         $users = User::whereHas('roles', function ($query) {
-            $query->where('name', 'user');
-        })->where('email_verified',1)->get();
+            $query->where('name', RolesEnum::USER->value);
+        })->whereNotNull('email_verified_at')->get();
         return $users;
     }
 
-    public function getUser(User $user) 
+    /**
+     * get a specific user.
+     * 
+     * @param User $user
+     * @return User
+     */
+    public function getUser(User $user):User
     {
         return  $user;
     }
 
-    public function deleteUser(User $user) 
+     /**
+     * Admin create a new user.
+     *
+     * @param array $data
+     * @return User
+     */
+    public function adminCreateUser(array $data): User
     {
-        $user->delete();
+        $user = User::create($data);
+        $user->assignRole($data['role']);
+        $user->email_verified_at = now();
+        return $user;
     }
 
-    public function updateUser(array $data) 
+    /**
+     * Update a user the given data.
+     *
+     * @param User $user
+     * @param array $data
+     * @return User
+     */
+    public function updateUser(array $data):User
     {
-        $user= User::where('id',Auth::user()->id)->first();
+        $user= User::where('id',Auth::user()->id)->firstOrFail();
         $user->update($data);
         return $user;
     }
 
+     /**
+     * Delete a user by ID.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function deleteUser(User $user):void
+    {
+        $user->tokens()->delete(); // Revoke all user tokens
+        $user->delete();
+    }
 }

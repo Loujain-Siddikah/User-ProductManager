@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class VerifyCodeRequest extends FormRequest
+class UpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +22,10 @@ class VerifyCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'code' => ['required'],
+            'first_name' => 'string|max:255',
+            'last_name' => 'string|max:255',
+            'email' => 'email|unique:users,email,'. auth()->id(),
+            'phone' => 'regex:/^[0-9]{10}$/|unique:users,phone,' . auth()->id(),
         ];
     }
 }

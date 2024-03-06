@@ -70,4 +70,4 @@ You can look at the API documentation if you don't want to test the API (https:/
 
 
 ## ER diagram 
-The project's database structure is represented using an Entity-Relationship (ER) diagram. This diagram visually depicts the entities, relationships between them, and attributes of each entity. It provides a comprehensive overview of the database schema, making it easier to understand the data model and relationships within our application. A PDF file containing the diagram has been provided in the User-ProductManager/ER_diagram/user_product_manager_erd.pdf directory.
+The project's database structure is represented using an Entity-Relationship (ER) diagram. This diagram visually depicts the entities, relationships between them, and attributes of each entity. It provides a comprehensive overview of the database schema, making it easier to understand the data model and relationships within our application. A PDF file containing the diagram has been provided in the User-ProductManager/er_diagram/user_product_manager_erd.pdf directory.

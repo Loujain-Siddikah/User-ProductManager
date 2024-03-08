@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use App\Interfaces\ProductRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Auth\Access\AuthorizationException;
 
  class ProductRepository implements ProductRepositoryInterface
 {

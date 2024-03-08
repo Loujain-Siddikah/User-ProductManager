@@ -4,18 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\ProductResource;
-use App\Repositories\ProductRepository;
 use App\Http\Requests\Product\CreateProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
+use App\Interfaces\ProductRepositoryInterface;
 
 class ProductController extends Controller
 {
 
-    public function __construct(private ProductRepository $productRepository)
+    public function __construct(private ProductRepositoryInterface $productRepository)
     {       
     }
 

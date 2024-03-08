@@ -74,11 +74,11 @@ class Handler extends ExceptionHandler
                 422            
             );
         }
-        // if ($e instanceof \Exception) {
-        //     return  $this->jsonErrorResponse(
-        //         'server error',
-        //         500);
-        // }
+        if ($e instanceof \Exception) {
+            return  $this->jsonErrorResponse(
+                'server error',
+                500);
+        }
         return parent::render($request, $e);
     }
 

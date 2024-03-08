@@ -6,13 +6,14 @@ use App\Events\UserRegistered;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Repositories\AuthRepository;
+use App\Interfaces\AuthRepositoryInterface;
 use App\Http\Requests\Auth\LoginUserRequest;
 use App\Http\Requests\Auth\VerifyCodeRequest;
 use App\Http\Requests\User\CreateUserRequest;
 
 class AuthController extends Controller
 {
-    public function __construct(private AuthRepository $authRepository)
+    public function __construct(private AuthRepositoryInterface $authRepository)
     {
         
     }

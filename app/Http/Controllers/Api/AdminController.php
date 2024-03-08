@@ -5,13 +5,13 @@ namespace App\Http\Controllers\api;
 use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Repositories\UserRepository;
 use App\Http\Requests\AdminCreateNewUser;
+use App\Interfaces\UserRepositoryInterface;
 
 
 class AdminController extends Controller
 {
-    public function __construct(private UserRepository $userRepository)
+    public function __construct(private UserRepositoryInterface $userRepository)
     {
     }
 

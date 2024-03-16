@@ -12,7 +12,8 @@
 6. Configure Mailtrap in your `.env` file for testing email functionality.
 8. Run **php artisan key:generate**
 9. Run **php artisan migrate**
-10. Run **php artisan serve**
+10. Run **php artisan db:seed**
+11. Run **php artisan serve**
 
 ## Project Features
 ### Repository Design Pattern 
